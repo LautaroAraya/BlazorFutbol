@@ -1,0 +1,70 @@
+﻿@page "/editarequipo"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Equipo> EquipoService
+@inject IGenericService<Entrenador> EntrenadorService
+@inject NavigationManager NavigationManager
+
+@if (equipo == null || entrenadores == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <h3>Editando un equipo</h3>
+    <EditForm Model="equipo" OnValidSubmit="GuardarEquipo">
+
+        <DataAnnotationsValidator />
+
+        <label class="form-label mb-2">Nombre del Equipo</label>
+        <InputText class="form-control" @bind-Value="equipo.Nombre" />
+
+        <label class="form-label mb-2">Estadio</label>
+        <InputText class="form-control" @bind-Value="equipo.Estadio" />
+
+        <label class="form-label mb-2">Entrenador</label>
+        <InputSelect class="form-control" @bind-Value="equipo.EntrenadorId">
+            <option value="">Selecciona un entrenador</option>
+            @foreach (var entrenador in entrenadores)
+            {
+                <option value="@entrenador.Id">@entrenador.Nombre</option>
+            }
+        </InputSelect>
+
+        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public int idEquipo { get; set; }
+
+    public Equipo? equipo { get; set; }
+    public List<Entrenador>? entrenadores { get; set; } = new List<Entrenador>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar el equipo por ID
+        equipo = await EquipoService.GetByIdAsync(idEquipo);
+
+        // Redirigir si el equipo no se encuentra
+        if (equipo == null)
+        {
+            NavigationManager.NavigateTo("/equipos");
+            return;
+        }
+
+        // Cargar la lista de entrenadores
+        entrenadores = await EntrenadorService.GetAllAsync();
+    }
+
+    private async Task GuardarEquipo()
+    {
+        // Actualizar el equipo utilizando el servicio genérico
+        await EquipoService.UpdateAsync(equipo);
+
+        // Redirigir a la lista de equipos después de guardar
+        NavigationManager.NavigateTo("/equipos");
+    }
+}

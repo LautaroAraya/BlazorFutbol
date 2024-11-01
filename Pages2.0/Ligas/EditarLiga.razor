@@ -1,0 +1,51 @@
+﻿@page "/editarliga"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Liga> LigaService
+@inject NavigationManager NavigationManager
+
+@if (liga == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <h3>Editando una liga</h3>
+    <EditForm Model="liga" OnValidSubmit="GuardarLiga">
+
+        <DataAnnotationsValidator />
+
+        <label class="form-label mb-2">Nombre de la Liga</label>
+        <InputText class="form-control" @bind-Value="liga.Nombre" />
+
+        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public int idLiga { get; set; }
+
+    public Liga? liga { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener la liga por ID utilizando el servicio genérico
+        liga = await LigaService.GetByIdAsync(idLiga);
+
+        if (liga == null)
+        {
+            // Redirigir o manejar el caso en que no se encuentra la liga
+            NavigationManager.NavigateTo("/ligas");
+        }
+    }
+
+    private async Task GuardarLiga()
+    {
+        // Actualizar la liga utilizando el servicio genérico
+        await LigaService.UpdateAsync(liga);
+        // Redirigir a la lista de ligas después de guardar
+        NavigationManager.NavigateTo("/ligas");
+    }
+}

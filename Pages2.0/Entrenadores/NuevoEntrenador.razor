@@ -1,0 +1,45 @@
+﻿@page "/nuevoentrenador"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Entrenador> EntrenadorService
+@inject NavigationManager NavigationManager
+
+<h3>Crear un nuevo entrenador</h3>
+
+@if (entrenador == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="entrenador" OnValidSubmit="GuardarEntrenador">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <InputText class="form-control" @bind-Value="entrenador.Nombre" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    public Entrenador? entrenador { get; set; } = new Entrenador();
+
+    private async Task GuardarEntrenador()
+    {
+        if (entrenador != null)
+        {
+            await EntrenadorService.AddAsync(entrenador);
+            NavigationManager.NavigateTo("/entrenadores");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/entrenadores");
+    }
+}

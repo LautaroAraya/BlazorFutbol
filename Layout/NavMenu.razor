@@ -1,0 +1,103 @@
+﻿@using BlazorFutbol.Services.Login
+@inject FirebaseAuthService AuthService
+@inject NavigationManager Navigation // Para manejar la navegación
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">KENJHI FC</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        @if (IsAuthenticated)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="entrenadores">
+                    <span class="bi bi-person-fill" aria-hidden="true"></span> Entrenadores
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="partidos">
+                    <span class="bi bi-calendar-fill" aria-hidden="true"></span> Partidos
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="ligas">
+                    <span class="bi bi-trophy-fill" aria-hidden="true"></span> Ligas
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="jugadores">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Jugadores
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="equipos">
+                    <span class="bi bi-shield-fill" aria-hidden="true"></span> Equipos
+                </NavLink>
+            </div>
+            <button class="btn btn-primary" @onclick="CerrarSesion">Cerrar sesión</button>
+        }
+        else
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="login">
+                    <span class="bi bi-person-fill" aria-hidden="true"></span> Iniciar Sesión
+                </NavLink>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    Usuario usuario { get; set; } = new Usuario();
+
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private bool IsAuthenticated;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        IsAuthenticated = await AuthService.IsUserAuthenticated();
+        AuthService.OnChangeLogin += ChequeoEstadoLogin;
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnChangeLogin -= ChequeoEstadoLogin;
+    }
+
+    public async void ChequeoEstadoLogin()
+    {
+        IsAuthenticated = await AuthService.IsUserAuthenticated();
+        if (IsAuthenticated)
+        {
+            Navigation.NavigateTo("/"); // Redirigir al Home
+        }
+        StateHasChanged();
+    }
+
+    private async Task CerrarSesion()
+    {
+        await AuthService.SignOut();
+        usuario = new Usuario();
+        IsAuthenticated = await AuthService.IsUserAuthenticated();
+        Navigation.NavigateTo("/"); // Redirigir al Home
+        StateHasChanged();
+    }
+}

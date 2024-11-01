@@ -1,0 +1,126 @@
+﻿@page "/equipos"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject GenericService<Equipo> equipoService
+@inject GenericService<Entrenador> entrenadorService
+
+<h3>Lista de Equipos</h3>
+
+@if (equipos == null)
+{
+    <p>Cargando...</p>
+}
+else if (equipos.Count == 0)
+{
+    <p>No hay equipos disponibles.</p>
+}
+else
+{
+    <NavLink class="nav-link" href="nuevoequipo">
+        Nuevo Equipo
+    </NavLink>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estadio</th>
+                <th>Entrenador</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var equipo in equipos)
+            {
+                <tr>
+                    <td>@equipo.Nombre</td>
+                    <td>@equipo.Estadio</td>
+                    <td>@entrenadores.FirstOrDefault(e => e.Id == equipo.EntrenadorId)?.Nombre</td>
+                    <td>
+                        <NavLink class="nav-link" href="@($"editarequipo?idEquipo={equipo.Id}")">
+                            Editar
+                        </NavLink>
+                        <button title="Eliminar" class="btn btn-danger" @onclick="@(() => ConfirmarEliminar(equipo))">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (equipoAEliminar != null)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar al equipo @equipoAEliminar.Nombre?
+        <button class="btn btn-danger" @onclick="EliminarEquipo">Sí, Eliminar</button>
+        <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert @(error ? "alert-danger" : "alert-success")">
+        @mensaje
+    </div>
+}
+
+@code {
+    private List<Equipo>? equipos;
+    private List<Entrenador>? entrenadores;
+    private Equipo? equipoAEliminar;
+    private string? mensaje;
+    private bool error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            equipos = await equipoService.GetAllAsync();
+            entrenadores = await entrenadorService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al cargar datos: {ex.Message}";
+            error = true;
+        }
+    }
+
+    private void ConfirmarEliminar(Equipo equipo)
+    {
+        equipoAEliminar = equipo;
+    }
+
+    private async Task EliminarEquipo()
+    {
+        if (equipoAEliminar != null)
+        {
+            try
+            {
+                await equipoService.DeleteAsync(equipoAEliminar.Id);
+                mensaje = $"El equipo {equipoAEliminar.Nombre} fue eliminado correctamente.";
+                error = false;
+            }
+            catch (Exception ex)
+            {
+                mensaje = $"Error al eliminar el equipo: {ex.Message}";
+                error = true;
+            }
+            finally
+            {
+                equipoAEliminar = null;
+                await CargarDatos();
+            }
+        }
+    }
+
+    private void CancelarEliminar()
+    {
+        equipoAEliminar = null;
+    }
+}

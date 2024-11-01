@@ -1,0 +1,63 @@
+﻿@page "/editarentrenador"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Entrenador> EntrenadorService
+@inject NavigationManager NavigationManager
+
+@if (entrenador == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <h3>Editando un entrenador</h3>
+    <EditForm Model="entrenador" OnValidSubmit="GuardarEntrenador">
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <InputText class="form-control" @bind-Value="entrenador.Nombre" />
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+        <button type="button" class="btn btn-secondary mt-3" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public int idEntrenador { get; set; }
+
+    public Entrenador? entrenador { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener el entrenador por ID utilizando el servicio genérico
+        entrenador = await EntrenadorService.GetByIdAsync(idEntrenador);
+
+        if (entrenador == null)
+        {
+            // Redirigir o manejar el caso en que no se encuentra el entrenador
+            NavigationManager.NavigateTo("/entrenadores");
+        }
+    }
+
+    private async Task GuardarEntrenador()
+    {
+        if (entrenador != null)
+        {
+            // Actualizar el entrenador utilizando el servicio genérico
+            await EntrenadorService.UpdateAsync(entrenador);
+            // Redirigir a la lista de entrenadores después de guardar
+            NavigationManager.NavigateTo("/entrenadores");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/entrenadores");
+    }
+}

@@ -1,0 +1,69 @@
+﻿@page "/nuevoequipo"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Entrenador> EntrenadorService
+@inject IGenericService<Equipo> EquipoService
+@inject NavigationManager NavigationManager
+
+<h3>Crear un nuevo equipo</h3>
+
+@if (equipo == null || entrenadores == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="equipo" OnValidSubmit="GuardarEquipo">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre del Equipo</label>
+            <InputText class="form-control" @bind-Value="equipo.Nombre" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Estadio</label>
+            <InputText class="form-control" @bind-Value="equipo.Estadio" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Entrenador</label>
+            <InputSelect class="form-control" @bind-Value="equipo.EntrenadorId">
+                <option value="">Selecciona un entrenador</option>
+                @foreach (var entrenador in entrenadores)
+                {
+                    <option value="@entrenador.Id">@entrenador.Nombre</option>
+                }
+            </InputSelect>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    public Equipo? equipo { get; set; } = new Equipo();
+    public List<Entrenador>? entrenadores { get; set; } = new List<Entrenador>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar la lista de entrenadores
+        entrenadores = await EntrenadorService.GetAllAsync();
+    }
+
+    private async Task GuardarEquipo()
+    {
+        if (equipo != null)
+        {
+            await EquipoService.AddAsync(equipo);
+            NavigationManager.NavigateTo("/equipos");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/equipos");
+    }
+}
