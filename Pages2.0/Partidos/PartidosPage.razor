@@ -1,0 +1,92 @@
+﻿@page "/partidos"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos;
+
+@inject GenericService<Partido> partidoService
+
+
+<h3>Lista de Partidos</h3>
+
+@if (partidos == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <NavLink class="nav-link" href="nuevopartido">
+        Nuevo Partido
+    </NavLink>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Equipo Local</th>
+                <th>Equipo Visitante</th>
+                <th>Fecha</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var partido in partidos)
+            {
+                <tr>
+                    <td>@partido.EquipoLocal</td>
+                    <td>@partido.EquipoVisitante</td>
+                    <td>@partido.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <NavLink class="nav-link" href="@($"editarpartido?idPartido={partido.Id}")">
+                            Editar
+                        </NavLink>
+                        <button title="Eliminar" class="btn btn-danger" @onclick="@(() => ConfirmarEliminar(partido))">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (partidoAEliminar != null)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar el partido entre @partidoAEliminar.EquipoLocal y @partidoAEliminar.EquipoVisitante?
+        <button class="btn btn-danger" @onclick="EliminarPartido">Sí, Eliminar</button>
+        <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+    </div>
+}
+
+@code {
+    private List<Partido>? partidos;
+    private Partido? partidoAEliminar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPartidos();
+    }
+
+    private async Task CargarPartidos()
+    {
+        partidos = await partidoService.GetAllAsync();
+    }
+
+    private void ConfirmarEliminar(Partido partido)
+    {
+        partidoAEliminar = partido;
+    }
+
+    private async Task EliminarPartido()
+    {
+        if (partidoAEliminar != null)
+        {
+            // Eliminar el partido usando el servicio
+            await partidoService.DeleteAsync(partidoAEliminar.Id);
+            partidoAEliminar = null; // Reiniciar el partido a eliminar
+            await CargarPartidos(); // Recargar la lista de partidos
+        }
+    }
+
+    private void CancelarEliminar()
+    {
+        partidoAEliminar = null; // Reiniciar la selección
+    }
+}

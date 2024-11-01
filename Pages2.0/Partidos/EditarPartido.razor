@@ -1,0 +1,75 @@
+﻿@page "/editarpartido"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Partido> PartidoService
+@inject IGenericService<Equipo> EquipoService // Asegúrate de inyectar el servicio de equipos
+@inject NavigationManager NavigationManager
+
+@if (partido == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <h3>Editando un partido</h3>
+    <EditForm Model="partido" OnValidSubmit="GuardarPartido">
+
+        <DataAnnotationsValidator />
+
+        <label class="form-label mb-2">Equipo Local</label>
+        <InputSelect class="form-control" @bind-Value="partido.EquipoLocalId">
+            <option value="">Selecciona un equipo</option>
+            @foreach (var equipo in equipos)
+            {
+                <option value="@equipo.Id">@equipo.Nombre</option>
+            }
+        </InputSelect>
+
+        <label class="form-label mb-2">Equipo Visitante</label>
+        <InputSelect class="form-control" @bind-Value="partido.EquipoVisitanteId">
+            <option value="">Selecciona un equipo</option>
+            @foreach (var equipo in equipos)
+            {
+                <option value="@equipo.Id">@equipo.Nombre</option>
+            }
+        </InputSelect>
+
+        <label class="form-label mb-2">Fecha del Partido</label>
+        <InputDate class="form-control" @bind-Value="partido.Fecha" />
+
+        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public int idPartido { get; set; }
+
+    public Partido? partido { get; set; }
+
+    public List<Equipo> equipos { get; set; } = new List<Equipo>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener el partido por ID utilizando el servicio genérico
+        partido = await PartidoService.GetByIdAsync(idPartido);
+
+        if (partido == null)
+        {
+            // Redirigir o manejar el caso en que no se encuentra el partido
+            NavigationManager.NavigateTo("/partidos");
+        }
+
+        // Cargar la lista de equipos
+        equipos = await EquipoService.GetAllAsync(); // Asegúrate de que tu servicio tenga este método
+    }
+
+    private async Task GuardarPartido()
+    {
+        // Actualizar el partido utilizando el servicio genérico
+        await PartidoService.UpdateAsync(partido);
+        // Redirigir a la lista de partidos después de guardar
+        NavigationManager.NavigateTo("/partidos");
+    }
+}

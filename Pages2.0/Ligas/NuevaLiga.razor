@@ -1,0 +1,51 @@
+﻿@page "/nuevaliga"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Liga> LigaService
+@inject NavigationManager NavigationManager
+
+<h3>Crear una nueva liga</h3>
+
+@if (liga == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="liga" OnValidSubmit="GuardarLiga">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre de la Liga</label>
+            <InputText class="form-control" @bind-Value="liga.Nombre" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    public Liga? liga { get; set; } = new Liga();
+
+    protected override Task OnInitializedAsync()
+    {
+        // Inicializar el modelo de la liga si es necesario
+        return Task.CompletedTask;
+    }
+
+    private async Task GuardarLiga()
+    {
+        if (liga != null)
+        {
+            await LigaService.AddAsync(liga);
+            NavigationManager.NavigateTo("/ligas");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/ligas");
+    }
+}

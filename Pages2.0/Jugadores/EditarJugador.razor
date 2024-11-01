@@ -1,0 +1,57 @@
+﻿@page "/editarjugador"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Jugador> JugadorService
+@inject NavigationManager NavigationManager
+
+@if (jugador == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <h3>Editando un jugador</h3>
+    <EditForm Model="jugador" OnValidSubmit="GuardarJugador">
+
+        <DataAnnotationsValidator />
+
+        <label class="form-label mb-2">Nombre del Jugador</label>
+        <InputText class="form-control" @bind-Value="jugador.Nombre" />
+
+        <label class="form-label mb-2">Posición</label>
+        <InputText class="form-control" @bind-Value="jugador.Posicion" />
+
+        <label class="form-label mb-2">Equipo</label>
+        <InputText class="form-control" @bind-Value="jugador.Equipo" />
+
+        <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public int idJugador { get; set; }
+
+    public Jugador? jugador { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener el jugador por ID utilizando el servicio genérico
+        jugador = await JugadorService.GetByIdAsync(idJugador);
+
+        if (jugador == null)
+        {
+            // Redirigir o manejar el caso en que no se encuentra el jugador
+            NavigationManager.NavigateTo("/jugadores");
+        }
+    }
+
+    private async Task GuardarJugador()
+    {
+        // Actualizar el jugador utilizando el servicio genérico
+        await JugadorService.UpdateAsync(jugador);
+        // Redirigir a la lista de jugadores después de guardar
+        NavigationManager.NavigateTo("/jugadores");
+    }
+}

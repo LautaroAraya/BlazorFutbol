@@ -1,0 +1,91 @@
+﻿@page "/jugadores"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos;
+
+@inject GenericService<Jugador> jugadorService
+
+<h3>Lista de Jugadores</h3>
+
+@if (jugadores == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <NavLink class="nav-link" href="nuevojugador">
+        Nuevo Jugador
+    </NavLink>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Posición</th>
+                <th>Equipo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var jugador in jugadores)
+            {
+                <tr>
+                    <td>@jugador.Nombre</td>
+                    <td>@jugador.Posicion</td>
+                    <td>@jugador.Equipo</td>
+                    <td>
+                        <NavLink class="nav-link" href="@($"editarjugador?idJugador={jugador.Id}")">
+                            Editar
+                        </NavLink>
+                        <button title="Eliminar" class="btn btn-danger" @onclick="@(() => ConfirmarEliminar(jugador))">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (jugadorAEliminar != null)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar al jugador @jugadorAEliminar.Nombre?
+        <button class="btn btn-danger" @onclick="EliminarJugador">Sí, Eliminar</button>
+        <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+    </div>
+}
+
+@code {
+    private List<Jugador>? jugadores;
+    private Jugador? jugadorAEliminar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarJugadores();
+    }
+
+    private async Task CargarJugadores()
+    {
+        jugadores = await jugadorService.GetAllAsync();
+    }
+
+    private void ConfirmarEliminar(Jugador jugador)
+    {
+        jugadorAEliminar = jugador;
+    }
+
+    private async Task EliminarJugador()
+    {
+        if (jugadorAEliminar != null)
+        {
+            // Eliminar el jugador usando el servicio
+            await jugadorService.DeleteAsync(jugadorAEliminar.Id);
+            jugadorAEliminar = null; // Reiniciar el jugador a eliminar
+            await CargarJugadores(); // Recargar la lista de jugadores
+        }
+    }
+
+    private void CancelarEliminar()
+    {
+        jugadorAEliminar = null; // Reiniciar la selección
+    }
+}

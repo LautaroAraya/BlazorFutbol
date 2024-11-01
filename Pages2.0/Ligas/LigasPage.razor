@@ -1,0 +1,87 @@
+﻿@page "/ligas"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos;
+
+@inject GenericService<Liga> ligaService
+
+<h3>Lista de Ligas</h3>
+
+@if (ligas == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <NavLink class="nav-link" href="nuevaliga">
+        Nueva Liga
+    </NavLink>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var liga in ligas)
+            {
+                <tr>
+                    <td>@liga.Nombre</td>
+                    <td>
+                        <NavLink class="nav-link" href="@($"editarliga?idLiga={liga.Id}")">
+                            Editar
+                        </NavLink>
+                        <button title="Eliminar" class="btn btn-danger" @onclick="@(() => ConfirmarEliminar(liga))">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (ligaAEliminar != null)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar la liga @ligaAEliminar.Nombre?
+        <button class="btn btn-danger" @onclick="EliminarLiga">Sí, Eliminar</button>
+        <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+    </div>
+}
+
+@code {
+    private List<Liga>? ligas;
+    private Liga? ligaAEliminar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarLigas();
+    }
+
+    private async Task CargarLigas()
+    {
+        ligas = await ligaService.GetAllAsync();
+    }
+
+    private void ConfirmarEliminar(Liga liga)
+    {
+        ligaAEliminar = liga;
+    }
+
+    private async Task EliminarLiga()
+    {
+        if (ligaAEliminar != null)
+        {
+            // Eliminar la liga usando el servicio
+            await ligaService.DeleteAsync(ligaAEliminar.Id);
+            ligaAEliminar = null; // Reiniciar la liga a eliminar
+            await CargarLigas(); // Recargar la lista de ligas
+        }
+    }
+
+    private void CancelarEliminar()
+    {
+        ligaAEliminar = null; // Reiniciar la selección
+    }
+}

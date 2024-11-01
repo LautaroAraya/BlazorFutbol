@@ -1,0 +1,71 @@
+﻿@page "/nuevopartido"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos
+@inject IGenericService<Partido> PartidoService
+@inject IGenericService<Equipo> EquipoService
+@inject NavigationManager NavigationManager
+
+<h3>Crear un nuevo partido</h3>
+
+@if (partido == null || equipos == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <EditForm Model="partido" OnValidSubmit="GuardarPartido">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Equipo Local</label>
+            <InputSelect class="form-control" @bind-Value="partido.EquipoLocalId">
+                <option value="">Selecciona un equipo</option>
+                @foreach (var equipo in equipos)
+                {
+                    <option value="@equipo.Id">@equipo.Nombre</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Equipo Visitante</label>
+            <InputSelect class="form-control" @bind-Value="partido.EquipoVisitanteId">
+                <option value="">Selecciona un equipo</option>
+                @foreach (var equipo in equipos)
+                {
+                    <option value="@equipo.Id">@equipo.Nombre</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fecha del Partido</label>
+            <InputDate class="form-control" @bind-Value="partido.Fecha" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </EditForm>
+}
+
+@code {
+    public Partido? partido { get; set; } = new Partido();
+    public List<Equipo>? equipos { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar la lista de equipos
+        equipos = await EquipoService.GetAllAsync();
+        // Inicializar el partido
+        partido = new Partido();
+    }
+
+    private async Task GuardarPartido()
+    {
+        if (partido != null)
+        {
+            await PartidoService.AddAsync(partido);
+            NavigationManager.NavigateTo("/partidos");
+        }
+    }
+}

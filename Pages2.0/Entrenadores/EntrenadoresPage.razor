@@ -1,0 +1,89 @@
+﻿@page "/entrenadores"
+@using BlazorFutbol.Interfaces
+@using BlazorFutbol.Modelos;
+
+@inject GenericService<Entrenador> entrenadorService
+
+<h3>Lista de Entrenadores</h3>
+
+@if (entrenadores == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <NavLink class="nav-link" href="nuevoentrenador">
+        Nuevo Entrenador
+    </NavLink>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Equipo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entrenador in entrenadores)
+            {
+                <tr>
+                    <td>@entrenador.Nombre</td>
+                    <td>@entrenador.Equipo</td>
+                    <td>
+                        <NavLink class="nav-link" href="@($"editarentrenador?idEntrenador={entrenador.Id}")">
+                            Editar
+                        </NavLink>
+                        <button title="Eliminar" class="btn btn-danger" @onclick="@(() => ConfirmarEliminar(entrenador))">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (entrenadorAEliminar != null)
+{
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar al entrenador @entrenadorAEliminar.Nombre?
+        <button class="btn btn-danger" @onclick="EliminarEntrenador">Sí, Eliminar</button>
+        <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+    </div>
+}
+
+@code {
+    private List<Entrenador>? entrenadores;
+    private Entrenador? entrenadorAEliminar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEntrenadores();
+    }
+
+    private async Task CargarEntrenadores()
+    {
+        entrenadores = await entrenadorService.GetAllAsync();
+    }
+
+    private void ConfirmarEliminar(Entrenador entrenador)
+    {
+        entrenadorAEliminar = entrenador;
+    }
+
+    private async Task EliminarEntrenador()
+    {
+        if (entrenadorAEliminar != null)
+        {
+            // Eliminar el entrenador usando el servicio
+            await entrenadorService.DeleteAsync(entrenadorAEliminar.Id);
+            entrenadorAEliminar = null; // Reiniciar el entrenador a eliminar
+            await CargarEntrenadores(); // Recargar la lista de entrenadores
+        }
+    }
+
+    private void CancelarEliminar()
+    {
+        entrenadorAEliminar = null; // Reiniciar la selección
+    }
+}
