@@ -10,7 +10,6 @@ public class GenericService<T> : IGenericService<T> where T : class
     {
         PropertyNameCaseInsensitive = true
     };
-    protected readonly string _endpoint;
 
     public GenericService(HttpClient client)
     {

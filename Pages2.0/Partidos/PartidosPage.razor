@@ -4,6 +4,7 @@
 
 @inject GenericService<Partido> partidoService
 
+
 <h3>Lista de Partidos</h3>
 
 @if (partidos == null)
@@ -48,7 +49,6 @@ else
 @if (partidoAEliminar != null)
 {
     <div class="alert alert-warning">
-        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar el partido entre @partidoAEliminar.EquipoLocal?.Nombre y @partidoAEliminar.EquipoVisitante?.Nombre?
         <button class="btn btn-danger" @onclick="EliminarPartido">Sí, Eliminar</button>
         <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
     </div>
@@ -77,14 +77,12 @@ else
     {
         if (partidoAEliminar != null)
         {
+            // Eliminar el partido usando el servicio
             await partidoService.DeleteAsync(partidoAEliminar.Id);
-            partidoAEliminar = null;
-            await CargarPartidos();
         }
     }
 
     private void CancelarEliminar()
     {
-        partidoAEliminar = null;
     }
 }

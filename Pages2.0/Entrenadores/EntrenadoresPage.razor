@@ -19,6 +19,7 @@ else
         <thead>
             <tr>
                 <th>Nombre</th>
+                <th>Equipo</th>
                 <th></th>
             </tr>
         </thead>
@@ -27,6 +28,7 @@ else
             {
                 <tr>
                     <td>@entrenador.Nombre</td>
+                    <td>@entrenador.Equipo</td>
                     <td>
                         <NavLink class="nav-link" href="@($"editarentrenador?idEntrenador={entrenador.Id}")">
                             Editar
