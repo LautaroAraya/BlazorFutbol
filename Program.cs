@@ -6,6 +6,7 @@ using BlazorFutbol.Modelos;
 using CurrieTechnologies.Razor.SweetAlert2;
 using Firebase.Auth;
 using BlazorFutbol.Services.Login;
+using BlazorFutbol.Services;
 
 internal class Program
 {
@@ -24,6 +25,7 @@ internal class Program
         builder.Services.AddScoped<GenericService<Entrenador>>();
         builder.Services.AddScoped<GenericService<Jugador>>();
         builder.Services.AddScoped<GenericService<Partido>>();
+
         builder.Services.AddScoped<FirebaseAuthService>();
 
         builder.Services.AddSweetAlert2();
