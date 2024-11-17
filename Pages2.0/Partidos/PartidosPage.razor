@@ -3,11 +3,11 @@
 @using BlazorFutbol.Modelos;
 
 @inject GenericService<Partido> partidoService
-
+@inject GenericService<Equipo> equipoService
 
 <h3>Lista de Partidos</h3>
 
-@if (partidos == null)
+@if (partidos == null || equipos == null)
 {
     <p>Cargando...</p>
 }
@@ -22,16 +22,16 @@ else
                 <th>Equipo Local</th>
                 <th>Equipo Visitante</th>
                 <th>Fecha</th>
-                <th></th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var partido in partidos)
             {
                 <tr>
-                    <td>@partido.EquipoLocal.Nombre</td> <!-- Nombre del equipo local -->
-                    <td>@partido.EquipoVisitante?.Nombre</td> <!-- Nombre del equipo visitante -->
-                    <td>@partido.Fecha.ToString("dd/MM/yyyy")</td> <!-- Formato solo para la fecha -->
+                    <td>@equipos.FirstOrDefault(e => e.Id == partido.EquipoLocalId)?.Nombre</td> <!-- Equipo Local -->
+                    <td>@equipos.FirstOrDefault(e => e.Id == partido.EquipoVisitanteId)?.Nombre</td> <!-- Equipo Visitante -->
+                    <td>@partido.Fecha.ToString("dd/MM/yyyy")</td> <!-- Fecha -->
                     <td>
                         <NavLink class="nav-link" href="@($"editarpartido?idPartido={partido.Id}")">
                             Editar
@@ -49,6 +49,9 @@ else
 @if (partidoAEliminar != null)
 {
     <div class="alert alert-warning">
+        <strong>Advertencia:</strong> ¿Está seguro que desea eliminar el partido entre
+        @equipos.FirstOrDefault(e => e.Id == partidoAEliminar.EquipoLocalId)?.Nombre y
+        @equipos.FirstOrDefault(e => e.Id == partidoAEliminar.EquipoVisitanteId)?.Nombre?
         <button class="btn btn-danger" @onclick="EliminarPartido">Sí, Eliminar</button>
         <button class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
     </div>
@@ -56,16 +59,23 @@ else
 
 @code {
     private List<Partido>? partidos;
+    private List<Equipo>? equipos;
     private Partido? partidoAEliminar;
 
     protected override async Task OnInitializedAsync()
     {
         await CargarPartidos();
+        await CargarEquipos();
     }
 
     private async Task CargarPartidos()
     {
         partidos = await partidoService.GetAllAsync();
+    }
+
+    private async Task CargarEquipos()
+    {
+        equipos = await equipoService.GetAllAsync();
     }
 
     private void ConfirmarEliminar(Partido partido)
@@ -79,10 +89,13 @@ else
         {
             // Eliminar el partido usando el servicio
             await partidoService.DeleteAsync(partidoAEliminar.Id);
+            partidoAEliminar = null; // Reiniciar el partido a eliminar
+            await CargarPartidos(); // Recargar la lista de partidos
         }
     }
 
     private void CancelarEliminar()
     {
+        partidoAEliminar = null; // Reiniciar la selección
     }
 }

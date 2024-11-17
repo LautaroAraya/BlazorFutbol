@@ -6,9 +6,10 @@ using System.Text.Json;
 public class GenericService<T> : IGenericService<T> where T : class
 {
     private readonly HttpClient client;
-    private static readonly JsonSerializerOptions options = new JsonSerializerOptions()
+    private static readonly JsonSerializerOptions options = new JsonSerializerOptions
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve // Manejo de relaciones
     };
     private readonly string _endpoint;
 
@@ -21,7 +22,7 @@ public class GenericService<T> : IGenericService<T> where T : class
     public async Task<List<T>?> GetAllAsync()
     {
         var response = await client.GetAsync(_endpoint);
-        response.EnsureSuccessStatusCode(); // Lanza una excepción si el código no es 200
+        response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<List<T>>(content, options);
@@ -31,7 +32,7 @@ public class GenericService<T> : IGenericService<T> where T : class
     {
         var fullEndpoint = $"{_endpoint}/{id}";
         var response = await client.GetAsync(fullEndpoint);
-        response.EnsureSuccessStatusCode(); // Lanza una excepción si el código no es 200
+        response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<T>(content, options);
@@ -40,7 +41,7 @@ public class GenericService<T> : IGenericService<T> where T : class
     public async Task<T?> AddAsync(T? entity)
     {
         var response = await client.PostAsJsonAsync(_endpoint, entity);
-        response.EnsureSuccessStatusCode(); // Lanza una excepción si el código no es 200
+        response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
         return JsonSerializer.Deserialize<T>(content, options);
@@ -56,12 +57,12 @@ public class GenericService<T> : IGenericService<T> where T : class
         }
 
         var response = await client.PutAsJsonAsync($"{_endpoint}/{idValue}", entity);
-        response.EnsureSuccessStatusCode(); // Lanza una excepción si el código no es 200
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task DeleteAsync(int id)
     {
         var response = await client.DeleteAsync($"{_endpoint}/{id}");
-        response.EnsureSuccessStatusCode(); // Lanza una excepción si el código no es 200
+        response.EnsureSuccessStatusCode();
     }
 }
