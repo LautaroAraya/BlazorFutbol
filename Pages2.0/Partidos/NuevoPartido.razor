@@ -57,7 +57,10 @@ else
         // Cargar la lista de equipos
         equipos = await EquipoService.GetAllAsync();
         // Inicializar el partido
-        partido = new Partido();
+        partido = new Partido
+        {
+            Fecha = DateTime.Now
+        };
     }
 
     private async Task GuardarPartido()
